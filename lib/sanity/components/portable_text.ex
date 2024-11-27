@@ -82,7 +82,9 @@ defmodule Sanity.Components.PortableText do
 
   def portable_text(assigns) do
     ~H"""
-    <%= for group <- blocks_to_nested_lists(@value) do %><.blocks_or_list mod={@mod} value={group} /><% end %>
+    <%= for group <- blocks_to_nested_lists(@value) do %>
+      <.blocks_or_list mod={@mod} value={group} />
+    <% end %>
     """
   end
 
@@ -92,13 +94,13 @@ defmodule Sanity.Components.PortableText do
   def to_plain_text(blocks) when is_list(blocks) do
     blocks
     |> Enum.filter(fn
-      %{_type: "block", children: [_ | _]} -> true
+      %{"_type" => "block", "children" => [_ | _]} -> true
       _ -> false
     end)
-    |> Enum.map(fn %{children: children} ->
+    |> Enum.map(fn %{"children" => children} ->
       children
       |> Enum.map(fn
-        %{_type: "span", text: text} -> text
+        %{"_type" => "span", "text" => text} -> text
         _ -> ""
       end)
       |> Enum.join(" ")
@@ -204,7 +206,9 @@ defmodule Sanity.Components.PortableText do
     ~H"""
     <li>
       <.children {@shared_props} />
-      <%= if @value[:sub_list] do %><.blocks_or_list mod={@mod} value={@value.sub_list} /><% end %>
+      <%= if @value[:sub_list] do %>
+        <.blocks_or_list mod={@mod} value={@value.sub_list} />
+      <% end %>
     </li>
     """
   end
@@ -213,13 +217,17 @@ defmodule Sanity.Components.PortableText do
     assigns = put_shared_props(assigns)
 
     ~H"""
-    <%= for child <- @value.children do %><.marks marks={child.marks} {@shared_props}><.text text={child.text} /></.marks><% end %>
+    <%= for child <- @value["children"] do %>
+      <.marks marks={child["marks"]} {@shared_props}><.text text={child["text"]} /></.marks>
+    <% end %>
     """
   end
 
   defp text(assigns) do
     ~H"""
-    <%= for node <- split_text(@text) do %><.text_node node={node} /><% end %>
+    <%= for node <- split_text(@text) do %>
+      <.text_node node={node} />
+    <% end %>
     """
   end
 
@@ -227,12 +235,12 @@ defmodule Sanity.Components.PortableText do
     text |> String.replace("\r", "") |> String.split("\n") |> Enum.intersperse("\n")
   end
 
-  defp text_node(%{node: "\n"} = assigns), do: ~H"<br>"
+  defp text_node(%{node: "\n"} = assigns), do: ~H"<br />"
   defp text_node(assigns), do: ~H"<%= @node %>"
 
   @doc false
   @impl true
-  def type(%{value: %{_type: "block"}} = assigns) do
+  def type(%{value: %{"_type" => "block"}} = assigns) do
     assigns = put_shared_props(assigns)
 
     ~H"""
@@ -242,7 +250,7 @@ defmodule Sanity.Components.PortableText do
     """
   end
 
-  def type(%{value: %{_type: type}} = assigns) do
+  def type(%{value: %{"_type" => type}} = assigns) do
     Logger.warning("unknown type: #{inspect(type)}")
 
     ~H""
@@ -250,20 +258,20 @@ defmodule Sanity.Components.PortableText do
 
   @doc false
   @impl true
-  def block(%{value: %{_type: "block", style: style}} = assigns)
+  def block(%{value: %{"_type" => "block", "style" => style}} = assigns)
       when style in ["blockquote", "h1", "h2", "h3", "h4", "h5", "h6"] do
     ~H"""
-    <.dynamic_tag tag_name={@value.style}><%= render_slot(@inner_block) %></.dynamic_tag>
+    <.dynamic_tag tag_name={@value["style"]}><%= render_slot(@inner_block) %></.dynamic_tag>
     """
   end
 
-  def block(%{value: %{_type: "block", style: "normal"}} = assigns) do
+  def block(%{value: %{"_type" => "block", "style" => "normal"}} = assigns) do
     ~H"""
     <p><%= render_slot(@inner_block) %></p>
     """
   end
 
-  def block(%{value: %{_type: "block", style: style}} = assigns) do
+  def block(%{value: %{"_type" => "block", "style" => style}} = assigns) do
     Logger.warning("unknown block style: #{inspect(style)}")
 
     ~H"""
@@ -281,7 +289,11 @@ defmodule Sanity.Components.PortableText do
     assigns = put_shared_props(assigns)
 
     ~H"""
-    <.render_with mod={@mod} func={:mark} {mark_props(@value.mark_defs, List.first(@marks))}><.marks marks={remaining_marks(@marks)} {@shared_props}><%= render_slot(@inner_block) %></.marks></.render_with>
+    <.render_with mod={@mod} func={:mark} {mark_props(@value["markDefs"], List.first(@marks))}>
+      <.marks marks={remaining_marks(@marks)} {@shared_props}>
+        <%= render_slot(@inner_block) %>
+      </.marks>
+    </.render_with>
     """
   end
 
