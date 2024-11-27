@@ -298,7 +298,7 @@ defmodule Sanity.Components.PortableText do
   end
 
   defp mark_props(mark_defs, mark) do
-    case Enum.find(mark_defs, &(&1._key == mark)) do
+    case Enum.find(mark_defs, &(&1["_key"] == mark)) do
       nil ->
         %{
           mark_key: mark,
@@ -306,7 +306,7 @@ defmodule Sanity.Components.PortableText do
           value: nil
         }
 
-      %{_type: type} = mark_def ->
+      %{"_type" => type} = mark_def ->
         %{
           mark_key: mark,
           mark_type: type,
@@ -327,7 +327,7 @@ defmodule Sanity.Components.PortableText do
 
   def mark(%{mark_type: "link"} = assigns) do
     ~H"""
-    <a href={@value.href}><%= render_slot(@inner_block) %></a>
+    <a href={@value["href"]}><%= render_slot(@inner_block) %></a>
     """
   end
 
